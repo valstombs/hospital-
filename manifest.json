@@ -1,0 +1,20 @@
+{
+  "name": "Hospital NSA",
+  "short_name": "NSA",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f5f6fa",
+  "theme_color": "#273c75",
+  "icons": [
+    {
+      "src": "https://sanatorioasuncion.com/wp-content/uploads/2025/01/LOGO-NSA-REDONDO.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://sanatorioasuncion.com/wp-content/uploads/2025/01/LOGO-NSA-REDONDO.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

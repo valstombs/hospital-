@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hospital y Clínicas NSA</title>
+<link rel="icon" href="https://sanatorioasuncion.com/wp-content/uploads/2025/01/LOGO-NSA-REDONDO.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#273c75">
+
+<style>
+  body { font-family: Arial, sans-serif; background: #f5f6fa; margin:0; padding:0; }
+  header { text-align:center; background:#273c75; color:white; padding:20px; }
+  header img { height:80px; margin-bottom:10px; }
+  .container { max-width: 900px; margin:30px auto; padding:20px; background:white; box-shadow:0 0 10px rgba(0,0,0,0.1); border-radius:8px; }
+  h2 { text-align:center; color:#192a56; }
+  form { display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:20px; }
+  label { font-weight:bold; }
+  input { padding:8px; border:1px solid #ccc; border-radius:4px; width:95%; }
+  button { grid-column: span 2; padding:10px; background:#44bd32; color:white; border:none; border-radius:4px; font-size:16px; cursor:pointer; }
+  button:hover { background:#4cd137; }
+  table { width:100%; border-collapse:collapse; margin-top:20px; }
+  th, td { border:1px solid #ddd; padding:10px; text-align:center; }
+  th { background:#273c75; color:white; }
+  .filters { margin-top:20px; display:grid; grid-template-columns:repeat(6, 1fr); gap:10px; }
+  .filters input { width:100%; padding:6px; }
+</style>
+</head>
+<body>
+
+<header>
+  <img src="https://sanatorioasuncion.com/wp-content/uploads/2025/01/LOGO-NSA-REDONDO.png" alt="Logo Hospital">
+  <h1>Hospital y Clínicas Nuestra Señora de la Asunción</h1>
+</header>
+
+<div class="container">
+  <h2>Registro de Pacientes</h2>
+  <form id="pacienteForm">
+    <div><label>Nombre del paciente:</label><input type="text" id="nombre" required></div>
+    <div><label>Código de ingreso:</label><input type="text" id="codigo" required></div>
+    <div><label>Día:</label><input type="number" id="dia" min="1" max="31" required></div>
+    <div><label>Mes:</label><input type="number" id="mes" min="1" max="12" required></div>
+    <div><label>Año:</label><input type="number" id="año" min="1900" max="2100" required></div>
+    <div><label>Médico tratante:</label><input type="text" id="medico" required></div>
+    <button type="submit">Agregar Paciente</button>
+  </form>
+
+  <div class="filters">
+    <input type="text" id="filtroNombre" placeholder="Filtrar por nombre">
+    <input type="text" id="filtroCodigo" placeholder="Filtrar por código">
+    <input type="number" id="filtroDia" placeholder="Filtrar por día">
+    <input type="number" id="filtroMes" placeholder="Filtrar por mes">
+    <input type="number" id="filtroAño" placeholder="Filtrar por año">
+    <input type="text" id="filtroMedico" placeholder="Filtrar por médico">
+  </div>
+
+  <table id="tablaPacientes">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Código</th>
+        <th>Día</th>
+        <th>Mes</th>
+        <th>Año</th>
+        <th>Médico</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js')
+  .then(() => console.log('Service Worker registrado'))
+  .catch(err => console.error('Error Service Worker:', err));
+}
+
+const form = document.getElementById("pacienteForm");
+const tablaBody = document.querySelector("#tablaPacientes tbody");
+const filtroNombre = document.getElementById("filtroNombre");
+const filtroCodigo = document.getElementById("filtroCodigo");
+const filtroDia = document.getElementById("filtroDia");
+const filtroMes = document.getElementById("filtroMes");
+const filtroAño = document.getElementById("filtroAño");
+const filtroMedico = document.getElementById("filtroMedico");
+
+// URL de tu Web App de Google Apps Script
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxNoyQUPdVL42q-_y-M0sju6jGpSF8JLT-J7T75bRDUEEJ_8fGMMQ1_HLEbprKde6Ox/exec web";
+
+let pacientes = JSON.parse(localStorage.getItem("pacientes")) || [];
+
+function renderTabla(lista) {
+  tablaBody.innerHTML = "";
+  lista.forEach(p => {
+    tablaBody.innerHTML += `<tr>
+      <td>${p.nombre}</td>
+      <td>${p.codigo}</td>
+      <td>${p.dia}</td>
+      <td>${p.mes}</td>
+      <td>${p.año}</td>
+      <td>${p.medico}</td>
+    </tr>`;
+  });
+}
+
+function aplicarFiltros() {
+  const nombreVal = filtroNombre.value.toLowerCase();
+  const codigoVal = filtroCodigo.value.toLowerCase();
+  const diaVal = filtroDia.value;
+  const mesVal = filtroMes.value;
+  const añoVal = filtroAño.value;
+  const medicoVal = filtroMedico.value.toLowerCase();
+
+  const filtrados = pacientes.filter(p => (
+    p.nombre.toLowerCase().includes(nombreVal) &&
+    p.codigo.toLowerCase().includes(codigoVal) &&
+    (diaVal === "" || p.dia == diaVal) &&
+    (mesVal === "" || p.mes == mesVal) &&
+    (añoVal === "" || p.año == añoVal) &&
+    p.medico.toLowerCase().includes(medicoVal)
+  ));
+  renderTabla(filtrados);
+}
+
+[filtroNombre, filtroCodigo, filtroDia, filtroMes, filtroAño, filtroMedico].forEach(input => {
+  input.addEventListener("input", aplicarFiltros);
+});
+
+form.addEventListener("submit", e => {
+  e.preventDefault();
+  const nuevo = {
+    nombre: document.getElementById("nombre").value,
+    codigo: document.getElementById("codigo").value,
+    dia: document.getElementById("dia").value,
+    mes: document.getElementById("mes").value,
+    año: document.getElementById("año").value,
+    medico: document.getElementById("medico").value
+  };
+  pacientes.push(nuevo);
+  localStorage.setItem("pacientes", JSON.stringify(pacientes));
+  aplicarFiltros();
+
+  fetch(SCRIPT_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(nuevo)
+  }).catch(err => console.error("Error al enviar a Sheets", err));
+
+  form.reset();
+});
+
+renderTabla(pacientes);
+</script>
+
+</body>
+</html>
